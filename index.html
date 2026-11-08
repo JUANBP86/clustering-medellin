@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Clustering por densidad | DBSCAN, HDBSCAN y accidentes en Medellín</title>
+<style>
+:root{--navy:#00345B;--blue:#22B2DE;--cyan:#8DE4F7;--pale:#E6F5FD;--ink:#163247;--muted:#627889;--white:#fff;--bg:#f3f8fb;--orange:#F4A340;--red:#E76F51;--green:#2A9D8F;--purple:#8172C5;--line:#d7e6ee;--shadow:0 18px 50px rgba(0,52,91,.10)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",Arial,sans-serif;line-height:1.55}
+button{font:inherit;cursor:pointer}.topbar{position:sticky;top:0;z-index:20;background:rgba(0,52,91,.96);color:white;display:flex;align-items:center;justify-content:space-between;padding:12px clamp(16px,4vw,52px);gap:16px;box-shadow:0 4px 18px #00233c33}
+.brand{font-weight:800;letter-spacing:.04em;font-size:.9rem}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid #ffffff60;background:#ffffff12;color:white;border-radius:10px;padding:8px 13px;font-weight:700}.btn:hover{background:#ffffff28}.progress{height:4px;background:#ffffff25;position:absolute;left:0;bottom:0;width:100%}.progress span{display:block;height:100%;width:0;background:var(--blue);transition:width .2s}
+nav{position:fixed;z-index:15;left:18px;top:95px;width:215px;max-height:calc(100vh - 115px);overflow:auto;background:white;border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:var(--shadow)}
+nav .navhead{font-size:.7rem;text-transform:uppercase;letter-spacing:.13em;font-weight:900;color:var(--muted);padding:8px 9px}nav a{display:block;text-decoration:none;color:#496477;padding:8px 10px;border-radius:8px;font-size:.83rem;line-height:1.3}nav a:hover,nav a.active{background:var(--pale);color:var(--navy);font-weight:800}
+main{max-width:1120px;margin:32px auto 80px;padding:0 24px 50px 260px}.hero{position:relative;overflow:hidden;border-radius:28px;background:linear-gradient(130deg,#002746,#00517a 65%,#087fa5);color:white;padding:clamp(30px,5vw,66px);box-shadow:var(--shadow);min-height:390px;display:grid;grid-template-columns:1.25fr .75fr;gap:24px;align-items:center}.eyebrow{color:var(--cyan);text-transform:uppercase;font-size:.76rem;font-weight:900;letter-spacing:.16em}.hero h1{font-size:clamp(2.4rem,5vw,4.6rem);line-height:1.02;letter-spacing:-.05em;margin:14px 0 20px}.hero p{font-size:1.08rem;color:#d9eef7;max-width:580px}.hero-art{width:100%;max-width:360px;justify-self:center}.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid #ffffff4d;border-radius:999px;padding:7px 12px;font-size:.82rem;margin:5px 5px 0 0}.section{padding-top:52px;scroll-margin-top:85px}.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:22px}.kicker{font-size:.72rem;font-weight:900;letter-spacing:.15em;text-transform:uppercase;color:#1689b5}.section h2{font-size:clamp(1.8rem,3.5vw,2.8rem);line-height:1.1;letter-spacing:-.035em;color:var(--navy);margin:7px 0}.section-intro{color:var(--muted);max-width:700px;margin:8px 0 0}.grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.card{background:white;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 8px 25px #00345b08;min-width:0}.card h3{margin:0 0 9px;color:var(--navy);font-size:1.08rem}.card p{margin:6px 0;color:var(--muted)}.big-number{font-size:2.3rem;line-height:1;font-weight:900;letter-spacing:-.04em;color:var(--navy)}.small{font-size:.82rem;color:var(--muted)}.tag{display:inline-block;border-radius:7px;padding:4px 8px;font-size:.73rem;font-weight:800;background:var(--pale);color:var(--navy)}.visual{background:#f8fcfe;border:1px solid #e0edf3;border-radius:14px;padding:12px;margin:12px 0}.visual svg{width:100%;height:auto;display:block}.callout{border-left:4px solid var(--blue);background:var(--pale);padding:15px 18px;border-radius:0 12px 12px 0;margin:16px 0;color:var(--navy)}.callout strong{color:var(--navy)}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.step{background:white;border:1px solid var(--line);border-radius:14px;padding:17px;position:relative}.step-num{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--navy);color:white;font-weight:900;margin-bottom:12px}.step h3{margin:0 0 5px;font-size:1rem;color:var(--navy)}.step p{font-size:.9rem;color:var(--muted);margin:0}.compare{width:100%;max-width:100%;table-layout:fixed;border-collapse:collapse;background:white;border-radius:14px;overflow:hidden;font-size:clamp(.76rem,.9vw,.91rem)}.compare th{background:var(--navy);color:white;text-align:left;padding:13px}.compare td{padding:13px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere;word-break:normal;white-space:normal}.compare th{overflow-wrap:anywhere;word-break:normal;white-space:normal}.compare code{white-space:normal;overflow-wrap:anywhere}.compare tr:last-child td{border-bottom:0}.compare td:first-child{font-weight:800;color:var(--navy);width:26%}.code{background:#0d2638;color:#d9f4ff;padding:18px;border-radius:14px;overflow:auto;font: .9rem/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre}.code .comment{color:#82c4d8}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.tab{background:white;color:var(--navy);border:1px solid var(--line);border-radius:10px;padding:9px 13px;font-weight:800}.tab.active{background:var(--navy);color:white}.tabpanel{display:none}.tabpanel.active{display:block}.statrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.stat{background:white;border:1px solid var(--line);border-radius:16px;padding:18px}.stat .label{font-size:.8rem;color:var(--muted);font-weight:700}.stat .value{font-size:1.8rem;color:var(--navy);font-weight:900;margin:4px 0}.barrow{display:grid;grid-template-columns:145px 1fr 62px;align-items:center;gap:12px;margin:14px 0;font-size:.88rem}.track{height:13px;background:#e9f0f4;border-radius:99px;overflow:hidden}.fill{height:100%;border-radius:99px}.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin:10px 0}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}.timeline{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin-top:18px}.timeitem{background:white;border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center}.timeitem b{display:block;color:var(--navy);font-size:.82rem}.timeitem span{font-size:.72rem;color:var(--muted)}.timeitem.active{background:#fff4e5;border-color:#f1c17b}.mapnote{font-size:.76rem;color:var(--muted);margin-top:8px}.quote{font-size:1.2rem;line-height:1.5;font-weight:700;color:var(--navy)}.footer{margin-top:60px;padding:25px;border-radius:18px;background:var(--navy);color:#d7edf6}.footer strong{color:white}.footer a{color:var(--cyan)}.speaker-note{display:none;background:#fff7df;border:1px solid #f1d58e;padding:14px;border-radius:12px;margin-top:12px;color:#6e501b}.show-notes .speaker-note{display:block}.hide{display:none!important}.source{font-size:.84rem;color:var(--muted);overflow-wrap:anywhere}.reveal{opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s}.reveal.seen{opacity:1;transform:none}
+
+.dynamic-lab{border:1px solid #b9deed;background:linear-gradient(145deg,#fff,#f3fbff)}.lab-controls{display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:end;margin:16px 0}.lab-controls label{display:grid;gap:7px;font-size:.9rem;font-weight:700;color:var(--navy)}.lab-controls input[type=range]{width:100%;accent-color:#168fc0}.dynamic-plot{border:1px solid #d9e9f0;background:#fff;border-radius:14px;padding:8px}.dynamic-plot canvas{display:block;width:100%;height:auto}.lab-insight{padding:12px 15px;background:#e6f5fd;border-radius:10px;color:#00345B;font-weight:650}.stability-bars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}.stability-bars>div{font-size:.78rem;color:var(--muted)}.stability-bars .track{margin-top:6px;height:10px}@media(max-width:680px){.lab-controls,.stability-bars{grid-template-columns:1fr}.lab-controls button{justify-self:start}}
+
+@media(max-width:1050px){nav{display:none}main{padding:0 22px;margin-top:20px}.hero{grid-template-columns:1fr .65fr}.g4,.statrow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:680px){.compare{font-size:.74rem}.compare th,.compare td{padding:7px 6px}.compare td:first-child{width:auto}.table-fit{width:100%;max-width:100%}.topbar{align-items:flex-start}.brand{max-width:140px}.hero{grid-template-columns:1fr;padding:28px;min-height:0}.hero-art{max-width:240px}.g2,.g3,.g4,.steps{grid-template-columns:1fr}.statrow{grid-template-columns:repeat(2,minmax(0,1fr))}.section-head{display:block}.barrow{grid-template-columns:100px 1fr 52px;gap:7px}.timeline{grid-template-columns:repeat(3,minmax(0,1fr))}.card{padding:17px}.section{padding-top:38px}}
+@media print{.topbar,nav,.top-actions,.tabs,.interactive-only{display:none!important}main{padding:0;max-width:none;margin:0}.hero,.card,.stat,.step{box-shadow:none;break-inside:avoid}.section{padding-top:25px;break-inside:avoid}.reveal{opacity:1;transform:none}.speaker-note{display:block}.hero{min-height:0}body{background:white}.footer{break-inside:avoid}}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}.dynamic-lab .btn{background:#fff;color:var(--navy);border-color:var(--line)}.dynamic-lab .btn:hover{background:var(--pale)}.dynamic-plot canvas{cursor:crosshair}.lab-controls output{color:#168fc0;font-weight:800}
+</style>
+</head>
+<body>
+<header class="topbar">
+<div class="brand">CLUSTERING · GUÍA VISUAL</div>
+<div class="top-actions">
+<button class="btn" id="presentBtn">⛶ Modo presentación</button>
+</div>
+<div class="progress"><span id="progressBar"></span></div>
+</header>
+<nav aria-label="Índice de la presentación">
+<div class="navhead">Contenido</div>
+<a href="#inicio">Portada</a><a href="#idea">1 · La idea de densidad</a><a href="#dbscan">2 · DBSCAN</a><a href="#hdbscan">3 · HDBSCAN</a><a href="#comparacion">4 · Comparación</a><a href="#paper">5 · El caso Siliguri</a><a href="#metodo">6 · Metodología</a><a href="#resultados">7 · Resultados</a><a href="#base-medellin">8 · Base de Medellín</a><a href="#critica">9 · Lectura crítica</a><a href="#cierre">10 · Conclusiones</a>
+</nav>
+<main>
+<section class="hero" id="inicio">
+<div>
+<div class="eyebrow">Presentación interactiva · Ciencia de datos</div>
+<h1>Clustering<br/>por densidad</h1>
+<p>De los puntos dispersos a los puntos calientes: cómo DBSCAN y HDBSCAN descubren grupos sin tener que dibujarlos de antemano.</p>
+<div><span class="pill">DBSCAN</span><span class="pill">HDBSCAN</span><span class="pill">Caso real · Siliguri, India</span></div>
+<div class="speaker-note">Apertura sugerida: “Imaginemos que cada punto del mapa representa un accidente. ¿Cómo descubriríamos las zonas donde se acumulan sin decidir previamente cuántas zonas existen?”</div>
+</div>
+<svg aria-label="Ilustración de puntos formando grupos" class="hero-art" role="img" viewbox="0 0 340 300">
+<circle cx="100" cy="110" fill="#22B2DE" opacity=".13" r="72"></circle><circle cx="244" cy="190" fill="#8DE4F7" opacity=".13" r="74"></circle>
+<g fill="#22B2DE">
+<circle cx="60" cy="82" r="5"></circle><circle cx="82" cy="64" r="5"></circle><circle cx="105" cy="88" r="6"></circle><circle cx="125" cy="70" r="5"></circle><circle cx="142" cy="101" r="5"></circle><circle cx="73" cy="112" r="6"></circle><circle cx="100" cy="127" r="5"></circle><circle cx="128" cy="135" r="5"></circle><circle cx="48" cy="133" r="5"></circle><circle cx="96" cy="157" r="5"></circle><circle cx="145" cy="151" r="4"></circle><circle cx="113" cy="48" r="4"></circle><circle cx="51" cy="57" r="4"></circle><circle cx="155" cy="81" r="4"></circle>
+</g><g fill="#8DE4F7">
+<circle cx="205" cy="157" r="5"></circle><circle cx="231" cy="139" r="6"></circle><circle cx="259" cy="155" r="5"></circle><circle cx="280" cy="178" r="5"></circle><circle cx="217" cy="187" r="5"></circle><circle cx="243" cy="202" r="6"></circle><circle cx="268" cy="219" r="5"></circle><circle cx="291" cy="206" r="4"></circle><circle cx="224" cy="225" r="5"></circle><circle cx="193" cy="211" r="4"></circle><circle cx="251" cy="122" r="4"></circle><circle cx="297" cy="160" r="4"></circle>
+</g><g fill="#F4A340"><circle cx="180" cy="58" r="5"></circle><circle cx="306" cy="92" r="4"></circle><circle cx="168" cy="243" r="4"></circle><circle cx="45" cy="207" r="4"></circle><circle cx="310" cy="252" r="4"></circle></g>
+<path d="M45 178 C80 197,120 183,153 176" fill="none" opacity=".7" stroke="#8DE4F7" stroke-dasharray="5 5" stroke-width="2"></path>
+<text fill="white" font-size="12" font-weight="700" x="83" y="260">GRUPO 1</text><text fill="white" font-size="12" font-weight="700" x="221" y="278">GRUPO 2</text><text fill="#8DE4F7" font-size="11" x="162" y="28">Puntos aislados = ruido</text>
+</svg>
+</section>
+<section class="section reveal" id="idea">
+<div class="section-head"><div><div class="kicker">01 · Concepto fundamental</div><h2>¿Qué significa Clustering por densidad?</h2><p class="section-intro">Agrupa datos que están muy cerca y concentrados entre sí, formando grupos según la cantidad de puntos que hay en una zona. <br/>También permite identificar puntos aislados que no pertenecen a ningún grupo, considerados ruido.</p></div></div>
+<div class="grid g2">
+<article class="card">
+<h3>Piensa en una ciudad vista desde arriba</h3>
+<div class="visual">
+<svg aria-label="Puntos agrupados en dos zonas y puntos aislados" role="img" viewbox="0 0 520 245">
+<rect fill="#f4faff" height="243" rx="12" width="518" x="1" y="1"></rect>
+<ellipse cx="130" cy="120" fill="#22B2DE" opacity=".12" rx="91" ry="78"></ellipse><ellipse cx="377" cy="139" fill="#2A9D8F" opacity=".12" rx="89" ry="72"></ellipse>
+<g fill="#168fc0"><circle cx="65" cy="87" r="5"></circle><circle cx="91" cy="70" r="5"></circle><circle cx="117" cy="92" r="5"></circle><circle cx="143" cy="71" r="5"></circle><circle cx="166" cy="102" r="5"></circle><circle cx="75" cy="120" r="5"></circle><circle cx="102" cy="128" r="5"></circle><circle cx="130" cy="117" r="5"></circle><circle cx="151" cy="142" r="5"></circle><circle cx="98" cy="159" r="5"></circle><circle cx="126" cy="177" r="5"></circle><circle cx="177" cy="157" r="5"></circle><circle cx="56" cy="151" r="5"></circle><circle cx="143" cy="102" r="5"></circle></g>
+<g fill="#2A9D8F"><circle cx="321" cy="112" r="5"></circle><circle cx="349" cy="91" r="5"></circle><circle cx="376" cy="106" r="5"></circle><circle cx="402" cy="89" r="5"></circle><circle cx="429" cy="118" r="5"></circle><circle cx="338" cy="139" r="5"></circle><circle cx="366" cy="145" r="5"></circle><circle cx="392" cy="132" r="5"></circle><circle cx="418" cy="155" r="5"></circle><circle cx="350" cy="176" r="5"></circle><circle cx="383" cy="182" r="5"></circle><circle cx="409" cy="191" r="5"></circle></g>
+<g fill="#F4A340"><circle cx="225" cy="45" r="5"></circle><circle cx="272" cy="204" r="5"></circle><circle cx="466" cy="54" r="5"></circle><circle cx="235" cy="161" r="5"></circle></g>
+<text fill="#00638b" font-size="13" font-weight="700" x="81" y="222">Grupo A</text><text fill="#19766d" font-size="13" font-weight="700" x="353" y="222">Grupo B</text><text fill="#8c641f" font-size="11" x="190" y="20">Aislados</text>
+</svg>
+</div>
+<div class="legend"><span><i class="dot" style="background:#168fc0"></i>Grupo A</span><span><i class="dot" style="background:#2A9D8F"></i>Grupo B</span><span><i class="dot" style="background:#F4A340"></i>Ruido</span></div>
+</article>
+<article class="card">
+<h3>¿Para qué sirve?</h3>
+<div class="grid">
+<div class="row" style="display:flex;gap:13px;align-items:flex-start"><span style="font-size:1.6rem">📍</span><div><b>Zonas calientes</b><p>Localizar accidentes, delitos o casos de enfermedad que se concentran.</p></div></div>
+<div class="row" style="display:flex;gap:13px;align-items:flex-start"><span style="font-size:1.6rem">🔎</span><div><b>Datos atípicos</b><p>Identificar puntos aislados que no encajan en ningún grupo.</p></div></div>
+<div class="row" style="display:flex;gap:13px;align-items:flex-start"><span style="font-size:1.6rem">〰️</span><div><b>Formas irregulares</b><p>Encontrar grupos que siguen calles, corredores o contornos no circulares.</p></div></div>
+</div>
+<div class="callout"><strong>Idea clave:</strong> No se necesita decirle al algoritmo cuántos grupos formar, sino que él identifica los grupos según cómo están concentrados los datos y qué tan cerca están entre sí.</div>
+</article>
+</div>
+<div class="speaker-note">Explica que cada punto representa una observación. “Densidad” no significa importancia: significa cuántos puntos se encuentran relativamente cerca de otros.</div>
+</section>
+<section class="section reveal" id="dbscan">
+<div class="section-head"><div><div class="kicker">02 · Método clásico</div><h2>DBSCAN: Una lupa con radio fijo</h2><p class="section-intro">DBSCAN usa una distancia máxima y un mínimo de vecinos para decidir dónde empieza y termina un grupo.</p></div></div>
+<div class="grid g2">
+<article class="card">
+<h3>Las dos piezas principales</h3>
+<div class="visual">
+<svg aria-label="Radio epsilon alrededor de un punto y vecinos dentro del círculo" role="img" viewbox="0 0 480 235">
+<rect fill="#f8fcfe" height="235" rx="12" width="480"></rect><circle cx="185" cy="115" fill="#22B2DE" opacity=".13" r="78" stroke="#168fc0" stroke-dasharray="6 5" stroke-width="2.5"></circle>
+<g fill="#168fc0"><circle cx="135" cy="81" r="6"></circle><circle cx="169" cy="59" r="6"></circle><circle cx="208" cy="67" r="6"></circle><circle cx="232" cy="99" r="6"></circle><circle cx="218" cy="139" r="6"></circle><circle cx="175" cy="159" r="6"></circle><circle cx="139" cy="137" r="6"></circle></g>
+<circle cx="185" cy="115" fill="#00345B" r="9" stroke="white" stroke-width="2"></circle>
+<circle cx="279" cy="44" fill="#F4A340" r="6"></circle><circle cx="314" cy="168" fill="#F4A340" r="6"></circle><circle cx="91" cy="198" fill="#F4A340" r="6"></circle>
+<path d="M185 115 L261 115" stroke="#00345B" stroke-width="2"></path><text fill="#00345B" font-size="14" font-weight="800" x="218" y="105">ε (radio)</text>
+<text fill="#9a651c" font-size="12" x="292" y="75">Fuera del radio</text><text fill="#9a651c" font-size="12" x="292" y="91">no cuenta</text>
+<text fill="#627889" font-size="12" x="22" y="22">Ejemplo ilustrativo</text>
+</svg>
+</div>
+<div class="grid g2">
+<div><span class="tag">epsilon · radio</span><p>Qué tan lejos busca vecinos cada punto.</p></div>
+<div><span class="tag">min_samples</span><p>Cuántos puntos hacen falta para considerar densa una zona.</p></div>
+</div>
+</article>
+<article class="card">
+<h3>Los tres tipos de punto</h3>
+<div class="visual">
+<svg aria-label="Punto núcleo, frontera y ruido" role="img" viewbox="0 0 480 230">
+<rect fill="#f8fcfe" height="230" rx="12" width="480"></rect>
+<circle cx="116" cy="110" fill="#22B2DE" opacity=".12" r="56" stroke="#168fc0" stroke-dasharray="4 4"></circle>
+<g fill="#168fc0"><circle cx="80" cy="81" r="5"></circle><circle cx="105" cy="67" r="5"></circle><circle cx="135" cy="75" r="5"></circle><circle cx="151" cy="105" r="5"></circle><circle cx="130" cy="135" r="5"></circle><circle cx="91" cy="143" r="5"></circle><circle cx="75" cy="113" r="5"></circle></g>
+<circle cx="116" cy="108" fill="#00345B" r="9" stroke="white" stroke-width="2"></circle>
+<circle cx="160" cy="134" fill="#F4A340" r="7" stroke="#9a651c" stroke-width="1.5"></circle>
+<circle cx="298" cy="81" fill="#E76F51" r="7"></circle><circle cx="355" cy="148" fill="#E76F51" r="7"></circle><circle cx="408" cy="83" fill="#E76F51" r="7"></circle>
+<text fill="#00345B" font-size="13" font-weight="800" x="61" y="185">Núcleo</text><text fill="#9a651c" font-size="13" font-weight="800" x="146" y="174">Frontera</text><text fill="#b44c32" font-size="13" font-weight="800" x="315" y="198">Ruido</text>
+<text fill="#627889" font-size="10" x="34" y="205">Muchos vecinos</text><text fill="#627889" font-size="10" x="132" y="191">Cerca de un núcleo</text><text fill="#627889" font-size="10" x="291" y="215">Sin grupo cercano</text>
+</svg>
+</div>
+<p><b>Núcleo:</b> Tiene suficientes vecinos. <br/><b>Frontera:</b> No reúne el mínimo para ser un núcleo, pero si hace parte de un cluster por está cerca de un núcleo. <br/><b>Ruido:</b> No pertenece a ningún grupo.</p>
+</article>
+</div>
+<div class="card" style="margin-top:16px">
+<h3>Cómo crece un grupo</h3>
+<div class="steps">
+<div class="step"><div class="step-num">1</div><h3>Elegir un punto</h3><p>Se cuentan sus vecinos dentro del radio ε.</p></div>
+<div class="step"><div class="step-num">2</div><h3>Comprobar densidad</h3><p>Si cumple el mínimo de puntos, se convierte en núcleo y comienza un grupo.</p></div>
+<div class="step"><div class="step-num">3</div><h3>Expandir la mancha</h3><p>Se agregan vecinos y se sigue creciendo desde otros núcleos.</p></div>
+</div>
+<div class="callout">Si un punto no tiene suficientes vecinos, se marca inicialmente como ruido pero puede ser reconocido como punto de frontera.</div>
+<div class="speaker-note">El parámetro epsilon depende de la escala y de las unidades. Un radio de 0,5 en datos estandarizados no equivale a 0,5 metros.</div>
+</div>
+<article class="card dynamic-lab interactive-only" id="dbscan-lab" style="margin-top:16px">
+<div class="kicker">Laboratorio interactivo · datos simulados</div>
+<h3>DIAGRÁMA DINÁMICO DE DBSCAN</h3>
+<p>El gráfico se redibuja al instante y clasifica cada punto según el radio y el mínimo de vecinos seleccionados.</p>
+<div class="lab-controls">
+<label>Radio ε: <output id="epsValue">30</output><input id="epsSlider" max="75" min="12" step="1" type="range" value="30"/></label>
+<label>Min_samples: <output id="minPtsValue">4</output><input id="minPtsSlider" max="10" min="2" step="1" type="range" value="4"/></label>
+<button class="btn secondary" id="dbReset" type="button">Restablecer</button>
+</div>
+<div class="dynamic-plot"><canvas aria-label="Gráfico dinámico de DBSCAN con puntos núcleo, frontera y ruido" height="360" id="dbCanvas" width="700"></canvas></div>
+<div class="legend"><span><i style="background:#168fc0"></i> Núcleo </span><span><i style="background:#fff;border:2.5px solid #168fc0"></i> Frontera</span><span style="color:#B97813"><b>✕</b> Ruido</span><span><i style="background:#fff;border:3px solid #00345B"></i> Punto seleccionado</span><span>El color distingue cada grupo encontrado</span></div>
+<div class="grid g3" style="margin-top:12px">
+<article class="card" style="padding:12px"><h4 style="margin:0 0 6px;color:#168fc0">● Núcleo</h4><p class="small">Tiene al menos el mínimo de puntos (contándose a sí mismo) dentro de ε. Puede expandir un grupo.</p></article>
+<article class="card" style="padding:12px"><h4 style="margin:0 0 6px;color:#2A9D8F">○ Frontera</h4><p class="small">No alcanza el mínimo, pero está dentro del radio de un núcleo. Pertenece al grupo, pero no lo expande.</p></article>
+<article class="card" style="padding:12px"><h4 style="margin:0 0 6px;color:#B97813">✕ Ruido</h4><p class="small">No alcanza el mínimo ni está al alcance de un núcleo con la configuración actual.</p></article>
+</div>
+<p class="small">El círculo punteado es su radio ε y las líneas lo unen con sus vecinos. Con un ε pequeño el grupo disperso se fragmenta o pasa a ruido y con ε grande los grupos se fusionan.</p>
+<p aria-live="polite" class="lab-insight" id="dbInsight">Ajusta el radio y el mínimo de puntos para ver el cambio.</p>
+</article>
+<article class="card" id="dbscan-parametros" style="margin-top:16px">
+<h3>PARÁMETROS DE DBSCAN:</h3>
+<div class="table-fit"><table class="compare"><thead><tr><th>Variable</th><th>¿Qué representa?</th><th>¿Cómo se define?</th><th>Si se aumenta…</th></tr></thead><tbody>
+<tr><td><code>ε epsilon</code></td><td>Es el radio para buscar vecinos.</td><td>Escalar primero las variables. <br/> Usar un gráfico de distancias al k-ésimo vecino y elige como referencia el valor donde la curva cambia bruscamente de pendiente.</td><td>Más puntos quedan conectados y grupos distintos pueden fusionarse.</td></tr>
+<tr><td><code>min_samples</code></td><td>Son los ecinos mínimos para que un punto sea núcleo y normalmente se cuenta el propio punto.</td><td>Comúnmente se escoge min_samples = 4 o 5 como punto de partida. <br/> Una regla práctica es elegir un valor igual o mayor al número de variables utilizadas estandarizadas más uno y probar valores mayores si hay mucho ruido.</td><td>Se exige más densidad y suelen aparecer más puntos como ruido y menos núcleos.</td></tr>
+</tbody></table></div>
+<div class="callout"><strong>Procedimiento recomendado:</strong> Primero, seleccionar variables relevantes, luego tratar faltantes y revisar valores extremos, después escalar cuando corresponda y estimar <code>eps</code> con distancias k-vecino luego probar varios pares <code>eps</code>/<code>min_samples</code> y comparar número y tamaño de grupos, porcentaje de ruido y utilidad para el problema.</div>
+</article>
+<div class="grid g2" style="margin-top:16px">
+<article class="card"><h3>Ejemplo en Python</h3><div class="code"><span class="comment"># Agrupar puntos con DBSCAN</span>
+from sklearn.cluster import DBSCAN
+
+etiquetas = DBSCAN(
+    eps=0.5,
+    min_samples=5
+).fit_predict(datos)
+
+<span class="comment"># La etiqueta -1 representa ruido</span></div></article>
+<article class="card"><h3>¿Dónde puede fallar?</h3><ul><li>Un único radio puede no funcionar para zonas muy densas y otras poco densas.</li><li>Un eps inadecuado puede unir grupos distintos o fragmentar uno.</li><li>Un mínimo demasiado bajo puede aceptar agrupamientos débiles.</li></ul></article>
+</div>
+</section>
+<section class="section reveal" id="hdbscan">
+<div class="section-head"><div><div class="kicker">03 · Extensión jerárquica</div><h2>HDBSCAN: Busca grupos estables</h2><p class="section-intro">En lugar de depender de un único radio, explora distintas escalas y selecciona grupos que persisten de forma estable.</p></div></div>
+<div class="grid g2">
+<article class="card">
+<h3>La analogía de las lupas</h3>
+<div class="visual">
+<svg aria-label="Comparación entre lupa fija de DBSCAN y múltiples escalas de HDBSCAN" role="img" viewbox="0 0 500 250">
+<rect fill="#f8fcfe" height="250" rx="12" width="500"></rect>
+<text fill="#00345B" font-size="14" font-weight="800" x="24" y="25">DBSCAN</text><text fill="#00345B" font-size="14" font-weight="800" x="266" y="25">HDBSCAN</text>
+<circle cx="103" cy="111" fill="#22B2DE" opacity=".1" r="63" stroke="#168fc0" stroke-width="2.5"></circle><g fill="#168fc0"><circle cx="64" cy="86" r="5"></circle><circle cx="83" cy="67" r="5"></circle><circle cx="111" cy="77" r="5"></circle><circle cx="133" cy="92" r="5"></circle><circle cx="139" cy="119" r="5"></circle><circle cx="111" cy="141" r="5"></circle><circle cx="83" cy="132" r="5"></circle><circle cx="66" cy="112" r="5"></circle></g>
+<circle cx="337" cy="105" fill="#22B2DE" opacity=".07" r="73" stroke="#168fc0" stroke-dasharray="5 4"></circle><circle cx="337" cy="105" fill="#22B2DE" opacity=".11" r="50" stroke="#168fc0" stroke-dasharray="5 4"></circle><circle cx="337" cy="105" fill="#22B2DE" opacity=".16" r="27" stroke="#168fc0" stroke-width="2"></circle>
+<g fill="#168fc0"><circle cx="303" cy="88" r="4"></circle><circle cx="327" cy="70" r="4"></circle><circle cx="349" cy="77" r="4"></circle><circle cx="367" cy="96" r="4"></circle><circle cx="350" cy="120" r="4"></circle><circle cx="323" cy="125" r="4"></circle><circle cx="309" cy="108" r="4"></circle></g>
+<path d="M168 111 H226" stroke="#627889" stroke-width="2"></path><path d="M218 104 L226 111 L218 118" fill="none" stroke="#627889" stroke-width="2"></path>
+<text fill="#627889" font-size="12" x="37" y="201">Un radio fijo</text><text fill="#627889" font-size="12" x="266" y="201">Varias escalas</text><text fill="#627889" font-size="12" x="266" y="218">→ grupos persistentes</text>
+<text fill="#9a651c" font-size="11" x="24" y="237">Esquema conceptual, no resultado del paper</text>
+</svg>
+</div>
+<p><b>La ventaja:</b> Puede reconocer grupos con densidades diferentes y asignar a cada punto una probabilidad de pertenencia.</p>
+</article>
+<article class="card">
+<h3>Cómo funciona, en 7 pasos</h3>
+<ol style="padding-left:22px;margin:0">
+<li>Estima qué tan aislado está cada punto.</li><li>Ajusta las distancias para reflejar densidad.</li><li>Conecta puntos mediante un árbol de expansión mínima (MST).</li><li>Rompe conexiones para formar una jerarquía.</li><li>Descarta grupos demasiado pequeños.</li><li>Selecciona los grupos más estables.</li><li>Devuelve grupos, ruido y probabilidades.</li>
+</ol>
+<div class="callout"><strong>En palabras simples:</strong> No se queda con una sola “foto”, sino que observa cómo cambian los grupos a diferentes escalas.</div>
+</article>
+</div>
+<div class="grid g3" style="margin-top:16px">
+<article class="card"><span class="tag">min_cluster_size</span><h3 style="margin-top:10px">Tamaño mínimo</h3><p>Define el número mínimo de puntos que debe tener un grupo para que HDBSCAN lo considere un clúster.</p></article>
+<article class="card"><span class="tag">min_samples</span><h3 style="margin-top:10px">Qué tan estricto</h3><p>Considera ese número de puntos más cercanos para calcular qué tan densa es la zona alrededor de un dato.</p></article>
+<article class="card"><span class="tag">probabilities_</span><h3 style="margin-top:10px">Fuerza de pertenencia</h3><p>Indica qué tan fuerte pertenece cada punto al clúster asignado: los valores cercanos a 1 indican una pertenencia más sólida y los cercanos a 0, una pertenencia más débil.</p></article>
+</div>
+<article class="card dynamic-lab interactive-only" id="hdbscan-lab" style="margin-top:16px">
+<div class="kicker">Laboratorio interactivo · datos simulados</div>
+<h3>DIAGRÁMA DINÁMICO HDBSCAN</h3>
+<div class="lab-controls">
+<label>min_samples: <output id="scaleValue">5</output><input id="scaleSlider" max="15" min="1" step="1" type="range" value="5"/></label>
+<label>min_cluster_size: <output id="clusterSizeValue">10 puntos</output><input id="clusterSizeSlider" max="30" min="3" step="1" type="range" value="10"/></label>
+<span class="small">Mueve los controles para comparar.</span>
+</div>
+<div class="dynamic-plot"><canvas aria-label="Resultado de HDBSCAN sobre datos simulados con grupos de distinta densidad" height="360" id="hdbCanvas" width="700"></canvas></div>
+<div class="legend"><span><i style="background:#168fc0"></i><i style="background:#2A9D8F"></i><i style="background:#8172C5"></i> Un color por grupo</span><span style="color:#B97813"><b>✕</b> Ruido</span><span>Tamaño y opacidad = probabilidad de pertenencia (<code>probabilities_</code>)</span><span><i style="background:#fff;border:3px solid #00345B"></i> Punto seleccionado</span></div>
+<p class="small">Haz clic sobre cualquier punto para resaltarlo y ver su vecindad local. El círculo representa una escala local de distancia (hasta el vecino número <code>min_samples</code>), no un radio ε fijo como en DBSCAN. Las líneas conectan el punto seleccionado con sus vecinos más próximos.</p>
+<p aria-live="polite" class="lab-insight" id="hdbPointInfo">Selecciona un punto del gráfico para consultar su grupo, probabilidad de pertenencia y vecindad.</p>
+<div class="small" style="margin-top:10px"><b>Estabilidad relativa de cada grupo:</b></div>
+<div class="stability-bars" id="stabBars"></div>
+<p aria-live="polite" class="lab-insight" id="hdbInsight">HDBSCAN busca grupos que se mantienen estables en diferentes escalas.</p>
+</article>
+<article class="card" id="hdbscan-parametros" style="margin-top:16px">
+<h3>PARÁMETROS DE HDBSCAN:</h3>
+<div class="table-fit"><table class="compare"><thead><tr><th>Variable</th><th>¿Qué representa?</th><th>¿Cómo se define?</th><th>Si se aumenta…</th></tr></thead><tbody>
+<tr><td><code>min_cluster_size</code></td><td>Define el número mínimo de puntos que debe tener un grupo para que HDBSCAN lo considere un clúster.</td><td>Se recomienda valores entre 5 a 10, dependiendo del contexto.<br/> Si se busca patrones pequeños, definir valores bajos y si solo importan concentraciones grandes, utilizar valores mayores.</td><td>Los grupos pequeños pueden desaparecer o integrarse como ruido/estructura subordinada.</td></tr>
+<tr><td><code>min_samples</code></td><td>Considera ese número de puntos más cercanos para calcular qué tan densa es la zona alrededor de un dato.</td><td>Si no se especifica, la librería <code>hdbscan</code> suele usar <code>min_cluster_size</code> como valor por defecto. <br/> Para explorar más grupos y menos ruido, trabajar con un valor menor y para exigir evidencia de densidad más fuerte, trabajar con uno mayor.</td><td>Generalmente aumenta el conservadurismo y puede crecer la cantidad de ruido.</td></tr>
+<tr><td><code>metric</code></td><td>Define cómo se calcula la distancia entre los puntos.</td><td>Para coordenadas geográficas convertidas a un sistema proyectado en metros, <code><b>euclidean</b></code> suele ser una opción práctica. <code> <b>haversine</b></code> es una métrica de distancia que calcula qué tan lejos están dos puntos sobre la superficie de la Tierra.</td><td>No se aumenta numéricamente: cambiar la métrica puede modificar las vecindades, los grupos y los puntos considerados ruido. No usar distancia euclidiana directamente sobre latitud y longitud expresadas en grados.</td></tr>
+<tr><td><code>cluster_selection_method</code></td><td>Indica cómo se seleccionan los clústeres a partir de la jerarquía de densidad.</td><td><code><b>eom</b></code> (Excess of Mass) Favorece clústeres que mantienen su estructura mientras cambia el nivel de densidad utilizado para identificarlos <br/> <code><b>leaf</b></code> selecciona agrupaciones más específicas y pequeñas a partir de las hojas terminales del árbol de clústeres condensado. En general, esto favorece agrupaciones más pequeñas y específicas.</td><td>No se aumenta numéricamente: cambiar de <code>eom</code> a <code>leaf</code> suele producir grupos más finos y potencialmente más numerosos.</td></tr>
+<tr><td><code>algorithm</code></td><td>Selecciona el procedimiento computacional usado para construir la jerarquía de agrupamiento.</td><td><code><b>best</b></code> elige internamente una estrategia computacional según las características de los datos y las opciones compatibles <br/> <code><b>generic</b></code> utiliza una implementación más general de los cálculos de HDBSCAN, en lugar de seleccionar una de las estrategias especializadas disponibles.</td><td>No se aumenta numéricamente: cambiarlo puede afectar el tiempo de ejecución y la compatibilidad con ciertas métricas, pero normalmente no representa una preferencia conceptual sobre los grupos. Se recomienda empezar con <code>best</code>.</td></tr>
+</tbody></table></div>
+<div class="callout"><strong>Ruta de ajuste:</strong> Primero se define el tamaño mínimo útil con <code>min_cluster_size</code>; luego se prueba <code>min_samples</code> y se comparan valores menores y mayores. Después se revisan la métrica adecuada para los datos, el método de selección (<code>eom</code> o <code>leaf</code>) y los resultados en términos de grupos, ruido y estabilidad. Mantén <code>algorithm='best'</code> salvo que haya una razón técnica para cambiarlo, y documenta la configuración final.</div>
+</article>
+<article class="card" style="margin-top:16px"><h3>Ejemplo en Python</h3><div class="code">import hdbscan
+
+modelo = hdbscan.HDBSCAN(
+    min_cluster_size=10,
+    min_samples=5,
+    metric='euclidean',
+    cluster_selection_method='eom',
+    algorithm='best'
+)
+etiquetas = modelo.fit_predict(datos)
+probabilidades = modelo.probabilities_</div><p class="small">Ejemplo ilustrativo: usa <code>metric='euclidean'</code> solo si las coordenadas están en un sistema proyectado adecuado, por ejemplo en metros. Si trabajas con latitud y longitud sin proyectar, revisa una métrica geodésica compatible.</p></article>
+<div class="speaker-note">Evita decir que HDBSCAN siempre es mejor o siempre más rápido. Según el documento, la elección depende de la estructura de los datos y de qué tan fácil sea justificar los parámetros.</div>
+</section>
+<section class="section reveal" id="comparacion">
+<div class="section-head"><div><div class="kicker">04 · Decidir qué método usar</div><h2>DBSCAN vs. HDBSCAN</h2><p class="section-intro">Los dos detectan grupos y ruido, pero no toman la misma ruta para elegir los grupos.</p></div></div>
+<div class="card">
+<table class="compare">
+<thead><tr><th>Aspecto</th><th>DBSCAN</th><th>HDBSCAN</th></tr></thead>
+<tbody>
+<tr><td>Parámetros</td><td>Radio y mínimo de vecinos.</td><td>Principalmente tamaño mínimo del grupo y escalas de densidad.</td></tr>
+<tr><td>Densidades distintas</td><td>Le cuesta manejarlas con un solo radio.</td><td>Puede detectar grupos de distintas densidades.</td></tr>
+<tr><td>Selección de grupos</td><td>Usa un radio fijo.</td><td>Explora escalas y selecciona grupos estables.</td></tr>
+<tr><td>Ruido</td><td>Sí lo identifica.</td><td>Sí lo identifica.</td></tr>
+<tr><td>Probabilidad por punto</td><td>No ofrece una probabilidad de pertenencia equivalente en su salida estándar.</td><td>Sí, entrega puntuaciones de pertenencia.</td></tr>
+<tr><td>Facilidad</td><td>Más fácil de explicar.</td><td>Más complejo, pero más flexible.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="grid g2" style="margin-top:16px">
+<article class="card" style="border-top:5px solid #22B2DE"><h3>Elige DBSCAN si…</h3><ul><li>Las densidades son parecidas.</li><li>El radio tiene una interpretación clara.</li><li>Necesitas una solución sencilla.</li></ul></article>
+<article class="card" style="border-top:5px solid #2A9D8F"><h3>Elige HDBSCAN si…</h3><ul><li>Hay zonas densas y zonas dispersas.</li><li>No sabes qué radio fijo elegir.</li><li>Te interesa la estabilidad y la fuerza de pertenencia.</li></ul></article>
+</div>
+</section>
+<section class="section reveal" id="paper">
+<div class="section-head"><div><div class="kicker">05 · Aplicación real</div><h2>El estudio de accidentes en Siliguri</h2></div></div>
+
+<article class="card">
+<h3>La pregunta central</h3>
+<p class="quote">¿Cómo se distribuyeron los accidentes entre 2021 y 2023 y en qué lugares y momentos se concentraron?</p>
+</article>
+
+<div class="section-head" style="margin-top:28px"><div><div class="kicker">Ficha del estudio</div><h3 style="font-size:1.45rem;color:var(--navy);margin:7px 0">CONTEXTO GENERAL</h3></div></div>
+<div class="grid g4">
+<article class="stat"><div class="label">Periodo observado</div><div class="value">2021–2023</div><div class="small">36 meses de registros de accidentes</div></article>
+<article class="stat"><div class="label">Tamaño de la muestra</div><div class="value">315</div><div class="small">Accidentes registrados con datos completos</div></article>
+<article class="stat"><div class="label">Lugar y fuente</div><div class="value" style="font-size:1.25rem">Siliguri, India</div><div class="small">Policía Metropolitana de Siliguri</div></article>
+<article class="stat"><div class="label">Fecha de Publicación</div><div class="value">2026</div><div class="small">Geographies, 6(2), artículo 55</div></article>
+</div>
+<div class="card">
+<article class="card"><h3>Variables y datos utilizados</h3><table class="compare"><thead><tr><th>Dato</th><th>¿Para qué se usó?</th></tr></thead><tbody>
+<tr><td>Coordenadas de ubicación</td><td>Ubicar cada accidente como un punto y agrupar espacialmente los 315 puntos con HDBSCAN.</td></tr>
+<tr><td>Fecha</td><td>Analizar patrones por mes y cambios temporales.</td></tr>
+<tr><td>Hora</td><td>Comparar franjas horarias y densidad de accidentes.</td></tr>
+<tr><td>Red vial y límites de ciudad</td><td>Capas cartográficas de referencia para interpretar los patrones en el territorio; no son variables de entrada de HDBSCAN.</td></tr>
+</tbody></table></article>
+</div>
+<div class="grid g2" style="margin-top:16px">
+<article class="card"><h3>¿Qué recibió HDBSCAN exactamente?</h3><div class="visual"><div class="steps"><div class="step"><div class="step-num">1</div><h3>315 accidentes</h3><p>Un registro por accidente.</p></div><div class="step"><div class="step-num">2</div><h3>Solo ubicación</h3><p>Coordenadas proyectadas a UTM 45N, WGS-84.</p></div><div class="step"><div class="step-num">3</div><h3>Distancia</h3><p>Euclidiana, medida en metros.</p></div></div></div><p>El artículo indica un tamaño mínimo de grupo de 7 accidentes. El parámetro <code>min_samples</code> se ajustó de forma iterativa, pero no se informa su valor final.</p></article>
+<article class="card"><h3>¿Qué información faltó?</h3><ul><li>Gravedad o severidad de cada accidente.</li><li>Tipo de vehículo involucrado.</li><li>Volumen de tráfico que circulaba por cada vía.</li></ul><p>Por eso, el estudio identifica <b>concentraciones de accidentes</b>, pero no puede establecer por sí solo la causa de cada siniestro ni calcular un riesgo ajustado al número de vehículos.</p></article>
+</div>
+<div class="speaker-note">Guion para exponer: “El artículo fue publicado en 2026, pero estudia accidentes registrados durante los 36 meses de 2021 a 2023. La muestra analizada fue de 315 registros completos. Para HDBSCAN no metieron la fecha ni la hora: usaron únicamente la ubicación geográfica. Fecha y hora sirvieron para otros análisis temporales. La red vial y los límites de la ciudad ayudaron a contextualizar los resultados. El estudio no tenía datos de gravedad, tipo de vehículo ni volumen de tráfico. La razón técnica para preferir HDBSCAN es que puede reconocer grupos de distintas densidades sin depender de un solo radio; sin ejecutar DBSCAN sobre las mismas coordenadas, no podemos afirmar cuáles grupos exactos habría encontrado de forma diferente”. Siliguri está en Bengala Occidental, India, y es un importante corredor de transporte y comercio.</div>
+</section>
+<section class="section reveal" id="metodo">
+<div class="section-head"><div><div class="kicker">06 · Diseño del estudio</div><h2>Seis pasos para analizar el problema</h2><p class="section-intro">El trabajo combinó métodos temporales, mapas de densidad y técnicas de agrupamiento espacial dentro de un sistema de información geográfica (GIS).</p></div></div>
+<div class="grid g2">
+<article class="card"><span class="tag">01 · Tiempo</span><h3 style="margin-top:10px">SaTScan temporal</h3><p>Busca periodos con más accidentes de lo esperado.</p><div class="visual"><svg viewbox="0 0 400 90"><path d="M18 70 H382" stroke="#c7d9e2" stroke-width="2"></path><g fill="#22B2DE"><rect height="25" rx="3" width="22" x="35" y="45"></rect><rect height="35" rx="3" width="22" x="72" y="35"></rect><rect height="55" rx="3" width="22" x="109" y="15"></rect><rect height="40" rx="3" width="22" x="146" y="30"></rect><rect height="22" rx="3" width="22" x="183" y="48"></rect><rect height="32" rx="3" width="22" x="220" y="38"></rect><rect height="43" rx="3" width="22" x="257" y="27"></rect><rect height="28" rx="3" width="22" x="294" y="42"></rect><rect height="19" rx="3" width="22" x="331" y="51"></rect></g></svg></div></article>
+<article class="card"><span class="tag">02 · Densidad</span><h3 style="margin-top:10px">KDE · mapa de calor</h3><p>Estima dónde se concentra la densidad de accidentes por franja horaria.</p><div class="visual"><svg viewbox="0 0 400 90"><rect fill="#eaf4f8" height="90" rx="8" width="400"></rect><path d="M20 68 C65 10 100 30 145 58 S220 83 250 25 S330 18 380 55" fill="none" opacity=".35" stroke="#22B2DE" stroke-width="16"></path><path d="M20 68 C65 10 100 30 145 58 S220 83 250 25 S330 18 380 55" fill="none" opacity=".8" stroke="#E76F51" stroke-width="7"></path></svg></div></article>
+<article class="card"><span class="tag">03 · Vecindad</span><h3 style="margin-top:10px">Moran’s I y LISA</h3><p>Evalúan si los accidentes tienden a agruparse y dónde hay asociaciones locales.</p><div class="visual"><svg viewbox="0 0 400 90"><g fill="#22B2DE"><circle cx="85" cy="34" r="10"></circle><circle cx="109" cy="45" r="10"></circle><circle cx="72" cy="59" r="10"></circle><circle cx="128" cy="26" r="10"></circle></g><g fill="#E76F51"><circle cx="285" cy="34" r="10"></circle><circle cx="309" cy="45" r="10"></circle><circle cx="272" cy="59" r="10"></circle><circle cx="328" cy="26" r="10"></circle></g><path d="M160 45 H232" stroke="#627889" stroke-dasharray="5 5" stroke-width="2"></path></svg></div></article>
+<article class="card"><span class="tag">04 · Zonas circulares</span><h3 style="margin-top:10px">Scan espacial</h3><p>Busca áreas circulares con más accidentes de los esperados.</p><div class="visual"><svg viewbox="0 0 400 90"><circle cx="200" cy="45" fill="#F4A340" opacity=".18" r="34" stroke="#d18a27" stroke-dasharray="5 4" stroke-width="2"></circle><g fill="#E76F51"><circle cx="178" cy="34" r="5"></circle><circle cx="195" cy="55" r="5"></circle><circle cx="209" cy="28" r="5"></circle><circle cx="224" cy="47" r="5"></circle><circle cx="188" cy="22" r="5"></circle><circle cx="218" cy="62" r="5"></circle></g></svg></div></article>
+<article class="card"><span class="tag">05 · Agrupamiento</span><h3 style="margin-top:10px">HDBSCAN</h3><p>Encuentra grupos de forma irregular y marca puntos aislados como ruido.</p><div class="visual"><svg viewbox="0 0 400 90"><path d="M35 52 Q65 8 110 35 T170 55" fill="none" opacity=".18" stroke="#22B2DE" stroke-linecap="round" stroke-width="22"></path><path d="M225 27 Q275 10 330 47 T365 65" fill="none" opacity=".18" stroke="#2A9D8F" stroke-linecap="round" stroke-width="22"></path><g fill="#168fc0"><circle cx="47" cy="45" r="4"></circle><circle cx="67" cy="29" r="4"></circle><circle cx="88" cy="36" r="4"></circle><circle cx="111" cy="47" r="4"></circle><circle cx="143" cy="53" r="4"></circle></g><g fill="#2A9D8F"><circle cx="240" cy="31" r="4"></circle><circle cx="268" cy="27" r="4"></circle><circle cx="296" cy="40" r="4"></circle><circle cx="321" cy="47" r="4"></circle><circle cx="351" cy="61" r="4"></circle></g></svg></div></article>
+<article class="card"><span class="tag">06 · Evolución</span><h3 style="margin-top:10px">Emerging Hot Spot Analysis</h3><p>Estudia cómo cambian las zonas calientes a lo largo del tiempo.</p><div class="visual"><svg viewbox="0 0 400 90"><path d="M25 68 L75 60 L125 66 L175 40 L225 47 L275 22 L325 28 L375 10" fill="none" stroke="#2A9D8F" stroke-width="3"></path><g fill="#2A9D8F"><circle cx="25" cy="68" r="4"></circle><circle cx="75" cy="60" r="4"></circle><circle cx="125" cy="66" r="4"></circle><circle cx="175" cy="40" r="4"></circle><circle cx="225" cy="47" r="4"></circle><circle cx="275" cy="22" r="4"></circle><circle cx="325" cy="28" r="4"></circle><circle cx="375" cy="10" r="4"></circle></g></svg></div></article>
+</div>
+<div class="callout"><strong>¿Por qué combinar métodos?</strong> Cada técnica responde una pregunta distinta: el mapa de calor muestra concentración, el scan espacial busca zonas circulares estadísticamente destacadas y HDBSCAN identifica grupos de densidad.</div>
+</section>
+<section class="section reveal" id="resultados">
+<div class="section-head"><div><div class="kicker">07 · Hallazgos del artículo</div><h2>¿Qué encontró HDBSCAN?</h2></div></div>
+<div class="statrow">
+<div class="stat"><div class="label">Accidentes analizados</div><div class="value">315</div><div class="small">Años 2021–2023</div></div>
+<div class="stat"><div class="label">Grupos encontrados</div><div class="value">8</div><div class="small">A lo largo de corredores</div></div>
+<div class="stat"><div class="label">En grupos</div><div class="value">81,90%</div><div class="small">Aproximadamente 258</div></div>
+<div class="stat"><div class="label">Ruido</div><div class="value">18,10%</div><div class="small">Aproximadamente 57</div></div>
+</div>
+<div class="grid g2" style="margin-top:16px">
+
+
+<article class="card">
+<h3>Parámetros de HDBSCAN utilizados en el paper</h3>
+<div class="table-fit">
+<table class="compare">
+<thead><tr><th>Parámetro</th><th>Valor utilizado o reportado</th></tr></thead>
+<tbody>
+<tr><td><code>min_cluster_size</code></td><td>7</td></tr>
+<tr><td><code>min_samples</code></td><td>Se seleccionó iterativamente según la distribución espacial y la variación de densidad de los datos. No indican un valor numérico final.</td></tr>
+<tr><td><code>metric</code></td><td>Euclidean (distancia euclidiana)</td></tr>
+<tr><td><code>algorithm</code></td><td>No se especifica el valor utilizado.</td></tr>
+<tr><td><code>cluster_selection_method</code></td><td>No se especifica el valor utilizado.</td></tr>
+</tbody>
+</table>
+</div>
+</article><article class="card">
+<h3>Cómo se repartieron los accidentes</h3>
+<div class="visual"><svg aria-label="Barra proporcional: 81.9 por ciento en grupos, 18.1 por ciento ruido" role="img" viewbox="0 0 500 155">
+<text fill="#00345B" font-size="13" font-weight="800" x="20" y="27">315 accidentes</text>
+<rect fill="#e4edf2" height="36" rx="8" width="460" x="20" y="47"></rect>
+<path d="M28 47 H388.7 V83 H28 Q20 83 20 75 V55 Q20 47 28 47" fill="#22B2DE"></path>
+<path d="M388.7 47 H472 Q480 47 480 55 V75 Q480 83 472 83 H388.7 Z" fill="#F4A340"></path>
+<text fill="#007fa8" font-size="13" font-weight="800" x="24" y="111">81,90% · en grupos</text><text fill="#9a651c" font-size="13" font-weight="800" x="280" y="133">18,10% · ruido</text>
+<text fill="#627889" font-size="10" x="20" y="146">Los conteos 258 y 57 son aproximaciones calculadas a partir de porcentajes.</text>
+</svg></div>
+<p>Los puntos clasificados como ruido no forman parte de un grupo suficientemente estable según el algoritmo; no significa automáticamente que sean errores.</p>
+</article></div>
+<div class="grid g2" style="margin-top:16px">
+
+
+<article class="card">
+<h3>Probabilidad de pertenencia reportada</h3>
+<p class="small">Porcentaje de puntos en cada rango descrito por el documento.</p>
+<div class="barrow"><span>Mayor a 0,90</span><div class="track"><div class="fill" style="width:46.98%;background:#2A9D8F"></div></div><b>46,98%</b></div>
+<div class="barrow"><span>0,75–0,90</span><div class="track"><div class="fill" style="width:5.08%;background:#22B2DE"></div></div><b>5,08%</b></div>
+<div class="barrow"><span>Menor a 0,75</span><div class="track"><div class="fill" style="width:29.84%;background:#F4A340"></div></div><b>29,84%</b></div>
+<div class="barrow"><span>Ruido</span><div class="track"><div class="fill" style="width:18.10%;background:#E76F51"></div></div><b>18,10%</b></div>
+</article><article class="card">
+<h3>Corredores destacados en el documento</h3>
+<div class="visual">
+<svg aria-label="Esquema de corredores viales nombrados en el artículo" role="img" viewbox="0 0 500 250">
+<rect fill="#f4f9fb" height="250" rx="12" width="500"></rect>
+<path d="M-15 50 C100 20 140 100 220 82 S360 35 515 72" fill="none" stroke="#b9d1dc" stroke-width="22"></path><path d="M-15 50 C100 20 140 100 220 82 S360 35 515 72" fill="none" stroke="#fff" stroke-width="13"></path>
+<path d="M55 265 C90 190 115 125 160 -10" fill="none" stroke="#b9d1dc" stroke-width="20"></path><path d="M55 265 C90 190 115 125 160 -10" fill="none" stroke="#fff" stroke-width="12"></path>
+<path d="M250 260 C240 190 270 135 330 -10" fill="none" stroke="#b9d1dc" stroke-width="22"></path><path d="M250 260 C240 190 270 135 330 -10" fill="none" stroke="#fff" stroke-width="13"></path>
+<path d="M-10 180 C100 140 180 210 270 170 S405 170 510 210" fill="none" stroke="#b9d1dc" stroke-width="22"></path><path d="M-10 180 C100 140 180 210 270 170 S405 170 510 210" fill="none" stroke="#fff" stroke-width="13"></path>
+<g fill="#E76F51"><circle cx="87" cy="50" r="5"></circle><circle cx="101" cy="56" r="5"></circle><circle cx="115" cy="59" r="5"></circle><circle cx="127" cy="65" r="5"></circle><circle cx="150" cy="100" r="5"></circle><circle cx="161" cy="118" r="5"></circle><circle cx="170" cy="137" r="5"></circle><circle cx="288" cy="75" r="5"></circle><circle cx="302" cy="82" r="5"></circle><circle cx="310" cy="96" r="5"></circle><circle cx="360" cy="180" r="5"></circle><circle cx="377" cy="184" r="5"></circle><circle cx="393" cy="188" r="5"></circle></g>
+<g fill="#00345B" font-size="11" font-weight="800"><text x="20" y="30">NH10</text><text x="65" y="145">Sevoke Road</text><text x="283" y="120">Eastern Bypass</text><text x="305" y="232">Corredores viales</text></g>
+</svg>
+</div>
+<p class="mapnote">Esquema ilustrativo, no es un mapa geográfico exacto ni reproduce los límites reales de los ocho grupos.</p>
+<p>El documento también menciona AH2, Bidhan Road, Nougakhat More, S.F. Road y DBC Road entre los corredores donde aparecen grupos.</p>
+</article></div>
+<div class="speaker-note">Aclara que 81,90% y 18,10% son los porcentajes del documento. Los conteos 258 y 57 son aproximados. El paper utilizó HDBSCAN, no realizó una comparación directa entre DBSCAN y HDBSCAN.</div>
+<article class="card" id="por-que-hdbscan-paper" style="margin-top:16px;border-left:5px solid #2A9D8F">
+<span class="tag">Interpretación técnica · análisis propio</span>
+<h3 style="margin-top:10px">¿Por qué HDBSCAN y no DBSCAN para este caso?</h3>
+<p>Los accidentes se distribuyen sobre una ciudad y sus corredores viales, por lo que es razonable esperar sectores con distintas concentraciones: algunos tramos pueden reunir muchos registros cercanos y otros presentar accidentes más dispersos. <b>HDBSCAN resulta conveniente porque examina la estructura de densidad a varias escalas y selecciona agrupamientos estables, en vez de depender de un único radio de vecindad.</b></p>
+<div class="grid g2" style="margin-top:12px">
+<div><h4>¿Qué riesgo habría con DBSCAN?</h4><ul><li>Con un radio pequeño, podría separar en varios grupos sectores menos densos que formen parte de un mismo corredor de accidentes.</li><li>Con un radio grande, podría unir concentraciones cercanas pero distintas, reduciendo el detalle de los puntos calientes.</li><li>Habría que escoger un único valor de <code>ε</code>; el resultado puede cambiar bastante al modificar ese parámetro.</li></ul></div>
+<div><h4>¿Qué aporta HDBSCAN al análisis?</h4><ul><li>Permite detectar grupos con diferentes densidades sin fijar un único <code>ε</code> global.</li><li>Puede conservar agrupamientos que se mantienen estables a distintas escalas y distinguirlos de observaciones aisladas.</li><li>Además de asignar grupos, estima una fuerza de pertenencia para ayudar a interpretar qué puntos encajan con menor o mayor claridad.</li></ul></div>
+</div>
+</article>
+</section>
+<section class="section reveal" id="base-medellin">
+<div class="section-head"><div><div class="kicker">08 · Nuestra base de datos</div><h2>Accidentes viales georreferenciados en Medellín</h2><p class="section-intro"><i>Georeferenced Dataset on Road Traffic Incidents and Fatalities in Medellín, Colombia (2008–2025)</i>.</p>
+<div class="card" style="margin-top:14px;border:2px solid #22B2DE;background:linear-gradient(120deg,#e6f5fd,#f5fffd);box-shadow:0 8px 22px rgba(0,52,91,.10)">
+<div class="kicker" style="color:#087da8;font-weight:900;letter-spacing:.12em">PREGUNTA DE INVESTIGACIÓN</div>
+<p class="quote" style="font-size:clamp(1.15rem,2.2vw,1.55rem);line-height:1.4;color:#00345B;margin:8px 0 4px">¿En qué zonas de Medellín se concentran los accidentes viales ocurridos en 2025 y comó podemos agruparlas a partir de sus coordenadas geográficas?</p>
+</div></div></div>
+<div class="statrow">
+<div class="stat"><div class="label">Registros en la base original</div><div class="value">18.808</div><div class="small">registros únicamente del 2025</div></div>
+<div class="stat"><div class="label">Variables</div><div class="value">13</div><div class="small">Columnas identificadas en la hoja BD</div></div>
+<div class="stat"><div class="label">Año analizado</div><div class="value">2025</div><div class="small">Solo se incluirán registros de este año</div></div>
+<div class="stat"><div class="label">Unidad espacial</div><div class="value">Punto</div><div class="small">Cada registro con coordenadas válidas representa una ubicación</div></div>
+</div>
+<div class="grid g2" style="margin-top:16px">
+<article class="card">
+<h3>¿Qué contiene un registro?</h3>
+<div class="visual">
+<svg aria-label="Esquema de un registro de incidente con tiempo, tipo, gravedad y coordenadas" role="img" viewbox="0 0 500 205">
+<rect fill="#f4faff" height="205" rx="12" width="500"></rect>
+<rect fill="#00345B" height="40" rx="9" width="464" x="18" y="18"></rect>
+<text fill="#fff" font-size="14" font-weight="800" x="34" y="43">Registro de incidente vial</text>
+<g fill="#163247" font-size="12">
+<rect fill="#e6f5fd" height="48" rx="8" stroke="#b9deed" width="145" x="18" y="73"></rect><text font-weight="800" x="30" y="92">CUÁNDO</text><text x="30" y="108">Fecha · hora · año</text>
+<rect fill="#e8f7f3" height="48" rx="8" stroke="#b9e4d9" width="145" x="177" y="73"></rect><text font-weight="800" x="189" y="92">QUÉ OCURRIÓ</text><text x="189" y="108">Clase · gravedad</text>
+<rect fill="#fff4e5" height="48" rx="8" stroke="#f1d4a6" width="146" x="336" y="73"></rect><text font-weight="800" x="348" y="92">DÓNDE</text><text x="348" y="108">Latitud · longitud</text>
+</g>
+<path d="M250 124 V143" stroke="#627889" stroke-width="2"></path><path d="M244 137 L250 144 L256 137" fill="none" stroke="#627889" stroke-width="2"></path>
+<rect fill="#dff4fa" height="36" rx="9" stroke="#22B2DE" width="322" x="89" y="150"></rect>
+<text fill="#00345B" font-size="13" font-weight="800" text-anchor="middle" x="250" y="172">Patrones espaciales y zonas de concentración</text>
+</svg>
+</div>
+<p>Además de las coordenadas, el archivo contiene una llave del registro, dirección interpolada y códigos/nombres de comuna y barrio de planeación.</p>
+</article>
+<article class="card">
+<h3>¿Qué variables vamos a usar?</h3>
+<div class="visual">
+<svg aria-label="Plano cartesiano con puntos geográficos agrupados" role="img" viewbox="0 0 500 205">
+<rect fill="#f8fcfe" height="205" rx="12" width="500"></rect>
+<path d="M56 24 V165 H463" fill="none" stroke="#627889" stroke-width="1.5"></path>
+<g stroke="#d7e6ee" stroke-width="1"><path d="M56 55 H463 M56 90 H463 M56 125 H463 M130 24 V165 M205 24 V165 M280 24 V165 M355 24 V165 M430 24 V165"></path></g>
+<ellipse cx="160" cy="89" fill="#22B2DE" opacity=".13" rx="66" ry="43"></ellipse><ellipse cx="345" cy="119" fill="#2A9D8F" opacity=".14" rx="75" ry="35"></ellipse>
+<g fill="#168fc0"><circle cx="119" cy="83" r="4"></circle><circle cx="141" cy="61" r="4"></circle><circle cx="155" cy="95" r="4"></circle><circle cx="175" cy="76" r="4"></circle><circle cx="190" cy="104" r="4"></circle><circle cx="148" cy="117" r="4"></circle><circle cx="174" cy="123" r="4"></circle></g>
+<g fill="#2A9D8F"><circle cx="298" cy="118" r="4"></circle><circle cx="323" cy="103" r="4"></circle><circle cx="343" cy="126" r="4"></circle><circle cx="360" cy="111" r="4"></circle><circle cx="383" cy="130" r="4"></circle><circle cx="334" cy="143" r="4"></circle><circle cx="369" cy="147" r="4"></circle></g>
+<text fill="#00345B" font-size="12" font-weight="800" text-anchor="middle" x="260" y="194">Longitud (X)</text><text fill="#00345B" font-size="12" font-weight="800" text-anchor="middle" transform="rotate(-90 17 95)" x="17" y="95">Latitud (Y)</text>
+</svg>
+</div>
+<div class="grid g2">
+<div><span class="tag">Latitud</span><p>Ubicación norte–sur.</p></div>
+<div><span class="tag">Longitud</span><p>Ubicación este–oeste.</p></div>
+</div>
+<div class="callout"><b>Entrada del modelo:</b> usaremos únicamente <code>Latitud</code> y <code>Longitud</code> para formar los grupos espaciales. Fecha, gravedad, clase, comuna y barrio servirán después para describir e interpretar los resultados, no para construir los clústeres.</div>
+</article>
+</div>
+<div class="grid g2" style="margin-top:16px"><article class="card"><div style="font-size:1.8rem">🗓️</div><h3>Tiempo</h3><p><b>AÑO · FECHA_INCIDENTE · HORA_INCIDENTE</b></p><p>Permiten describir cuándo ocurrió cada incidente.</p></article><article class="card"><div style="font-size:1.8rem">🚦</div><h3>Características</h3><p><b>CLASE_INCIDENTE · GRAVEDAD_INCIDENTE</b></p><p>Describen el tipo de incidente y su gravedad registrada.</p></article><article class="card"><div style="font-size:1.8rem">📍</div><h3>Localización</h3><p><b>Latitud · Longitud · DIRECCION_INTERPOLADA</b></p><p>Ubican el registro geográficamente; las coordenadas serán la entrada del clustering.</p></article><article class="card"><div style="font-size:1.8rem">🏘️</div><h3>División territorial</h3><p><b>Comuna y barrio de planeación, con sus códigos</b></p><p>Ayudan a interpretar los grupos en el territorio, pero no serán variables de entrada del modelo.</p></article></div>
+<div class="card" style="margin-top:16px">
+<h3>¿Por qué HDBSCAN y no DBSCAN?</h3>
+<div class="grid g2">
+<div>
+<div class="visual"><svg aria-label="DBSCAN usa un radio fijo y puede unir o fragmentar agrupaciones" role="img" viewbox="0 0 420 150"><rect fill="#f8fcfe" height="150" rx="10" width="420"></rect><text fill="#00345B" font-size="13" font-weight="800" x="18" y="24">DBSCAN · radio fijo</text><circle cx="112" cy="80" fill="#22B2DE" opacity=".12" r="49" stroke="#168fc0" stroke-dasharray="5 4" stroke-width="2"></circle><g fill="#168fc0"><circle cx="82" cy="65" r="4"></circle><circle cx="101" cy="48" r="4"></circle><circle cx="125" cy="60" r="4"></circle><circle cx="139" cy="84" r="4"></circle><circle cx="113" cy="96" r="4"></circle><circle cx="90" cy="100" r="4"></circle></g><circle cx="286" cy="87" fill="#F4A340" r="4"></circle><circle cx="313" cy="67" fill="#F4A340" r="4"></circle><circle cx="342" cy="91" fill="#F4A340" r="4"></circle><text fill="#9a651c" font-size="11" x="245" y="125">Otro foco / densidad distinta</text></svg></div>
+<p><b>La limitación:</b> un solo valor de <code>ε</code> puede ser demasiado pequeño para encontrar zonas dispersas o demasiado grande y fusionar focos diferentes.</p>
+</div>
+<div>
+<div class="visual"><svg aria-label="HDBSCAN explora diferentes escalas de densidad" role="img" viewbox="0 0 420 150"><rect fill="#f8fcfe" height="150" rx="10" width="420"></rect><text fill="#00345B" font-size="13" font-weight="800" x="18" y="24">HDBSCAN · varias escalas</text><ellipse cx="111" cy="79" fill="#22B2DE" opacity=".08" rx="69" ry="48" stroke="#168fc0" stroke-dasharray="5 4"></ellipse><ellipse cx="111" cy="79" fill="#22B2DE" opacity=".12" rx="48" ry="34" stroke="#168fc0" stroke-dasharray="5 4"></ellipse><ellipse cx="111" cy="79" fill="#22B2DE" opacity=".16" rx="27" ry="20" stroke="#168fc0" stroke-width="2"></ellipse><g fill="#168fc0"><circle cx="82" cy="65" r="4"></circle><circle cx="101" cy="48" r="4"></circle><circle cx="125" cy="60" r="4"></circle><circle cx="139" cy="84" r="4"></circle><circle cx="113" cy="96" r="4"></circle><circle cx="90" cy="100" r="4"></circle></g><ellipse cx="307" cy="83" fill="#2A9D8F" opacity=".12" rx="54" ry="32" stroke="#2A9D8F" stroke-dasharray="5 4"></ellipse><g fill="#2A9D8F"><circle cx="278" cy="76" r="4"></circle><circle cx="299" cy="61" r="4"></circle><circle cx="321" cy="78" r="4"></circle><circle cx="337" cy="91" r="4"></circle><circle cx="306" cy="103" r="4"></circle></g></svg></div>
+<p><b>La ventaja para este análisis:</b> explora distintas escalas de densidad y selecciona grupos estables, lo que resulta útil si los incidentes se concentran de manera desigual entre corredores y barrios.</p>
+</div>
+</div>
+<div class="callout"><b>Decisión metodológica:</b> HDBSCAN es una elección razonable para explorar concentraciones de accidentes en una ciudad extensa y heterogénea. No significa que siempre sea superior: compararemos los resultados y revisaremos el ruido, el tamaño de los grupos y su estabilidad.</div>
+</div>
+<div class="speaker-note">Guion para exponer: “La hoja BD contiene 702,540 registros en el archivo completo y 13 variables. Aunque la base original abarca 2008–2025, en este proyecto filtraremos únicamente los registros de 2025. Para el clustering espacial seleccionaremos solo latitud y longitud; el resto de los campos se reservará para caracterizar los grupos encontrados. Elegimos HDBSCAN porque no depende de un único radio global y puede identificar agrupaciones con densidades diferentes. Antes de ejecutarlo debemos verificar coordenadas faltantes o inválidas y convertir las coordenadas geográficas a un sistema de referencia proyectado en metros, o usar una métrica geodésica apropiada; no debemos aplicar distancias euclidianas directamente a grados de latitud y longitud.”</div>
+</section>
+<section class="section reveal" id="critica">
+<br/>
+<div class="section-head"><div><div class="kicker">09 · Lectura crítica</div><h2>¿Qué podemos concluir?</h2><p class="section-intro">Un buen análisis también explica sus límites: los resultados orientan decisiones, pero no responden todas las preguntas.</p></div></div>
+<div class="grid g2">
+<article class="card">
+<h3>Lo que sí aporta</h3>
+<ul><li>Localiza concentraciones espaciales de accidentes.</li><li>Identifica grupos irregulares y puntos aislados.</li><li>Ofrece probabilidades de pertenencia para interpretar la firmeza de los grupos.</li><li>Combina la visión espacial con el análisis temporal.</li></ul>
+</article>
+<article class="card">
+<h3>Precauciones del documento</h3>
+<ul><li>Solo analiza 315 accidentes y no incluye gravedad, tipo de vehículo o volumen de tráfico.</li><li>No informa el valor final de <code>min_samples</code> ni con precisión la librería utilizada.</li><li>No queda claro si las métricas de calidad incluyen o excluyen el ruido.</li><li>Se observan discrepancias de reporte: una tabla menciona siete grupos para el scan espacial, mientras el texto describe tres zonas.</li><li>Las posibles causas de accidentes nocturnos no se midieron directamente en el estudio.</li></ul>
+</article>
+</div>
+</section>
+<section class="section reveal" id="cierre">
+<div class="section-head"><div><div class="kicker">10 · Cierre</div><h2>De los datos a la acción</h2><p class="section-intro">El valor del clustering está en convertir miles de puntos —o, en este caso, cientos— en patrones que las personas puedan investigar y usar.</p></div></div>
+<div class="grid g3">
+<article class="card"><div style="font-size:2rem">🔍</div><h3>Detectar</h3><p>Encontrar zonas con acumulación de accidentes, incluso si su forma es irregular.</p></article>
+<article class="card"><div style="font-size:2rem">📊</div><h3>Validar</h3><p>Comparar métodos y revisar la estabilidad, las métricas y las limitaciones de los datos.</p></article>
+<article class="card"><div style="font-size:2rem">🚦</div><h3>Priorizar</h3><p>Investigar corredores críticos y evaluar medidas como iluminación, vigilancia y control de velocidad.</p></article>
+</div>
+<div class="card" style="margin-top:16px;background:linear-gradient(120deg,#e6f5fd,#fff)">
+<div class="kicker">Mensaje final</div><p class="quote">DBSCAN usa una escala fija. HDBSCAN explora varias escalas. Ambos ayudan a descubrir agrupamientos y ruido; la mejor elección depende de los datos y de la pregunta.</p>
+</div>
+<div class="card" style="margin-top:16px">
+<h3>Referencias principales del documento</h3>
+<ul class="source">
+<li>Ester, M.; Kriegel, H.-P.; Sander, J.; Xu, X. (1996). <i>A density-based algorithm for discovering clusters in large spatial databases with noise.</i> KDD-96, pp. 226–231.</li>
+<li>Campello, R. J. G. B.; Moulavi, D.; Sander, J. (2013). <i>Density-based clustering based on hierarchical density estimates.</i> PAKDD 2013, pp. 160–172.</li>
+<li>McInnes, L.; Healy, J.; Astels, S. (2017). <i>hdbscan: Hierarchical density based clustering.</i> Journal of Open Source Software, 2(11), 205.</li>
+<li>Roy, S.; Mohammadi, A.; Roy, R. (2026). <i>Road Traffic Accident Hotspot Detection: A GIS-Based Machine Learning Approach Using HDBSCAN and Spatial Clustering Techniques.</i> Geographies, 6(2), 55. <a href="https://doi.org/10.3390/geographies6020055" rel="noopener" target="_blank">https://doi.org/10.3390/geographies6020055</a></li>
+<li>Documentación: <a href="https://hdbscan.readthedocs.io/" rel="noopener" target="_blank">hdbscan.readthedocs.io</a> y <a href="https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html" rel="noopener" target="_blank">scikit-learn · DBSCAN</a>.</li>
+</ul>
+</div>
+</section>
+</main>
+<script>
+const links=[...document.querySelectorAll('nav a')];
+const sections=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+const bar=document.getElementById('progressBar');
+function updateProgress(){const max=document.documentElement.scrollHeight-innerHeight;bar.style.width=(max>0?scrollY/max*100:0)+'%';let current=sections[0];for(const s of sections){if(s.getBoundingClientRect().top<160)current=s;}links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+current.id));}
+window.addEventListener('scroll',updateProgress);updateProgress();
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('seen')}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+document.getElementById('notesBtn')?.addEventListener('click',()=>{document.body.classList.toggle('show-notes');document.getElementById('notesBtn').textContent=document.body.classList.contains('show-notes')?'🗣 Ocultar notas':'🗣 Notas para exponer';});
+document.getElementById('presentBtn').addEventListener('click',()=>{if(!document.fullscreenElement){document.documentElement.requestFullscreen?.();}else{document.exitFullscreen?.();}});
+
+// Laboratorios interactivos: datos simulados + implementaciones reales (simplificadas) de DBSCAN y HDBSCAN.
+function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function makeData(){const r=rng(7),g=()=>Math.sqrt(-2*Math.log(1-r()))*Math.cos(2*Math.PI*r()),a=[];
+ const blob=(cx,cy,sd,n)=>{for(let i=0;i<n;i++)a.push({x:cx+g()*sd,y:cy+g()*sd})};
+ blob(160,140,16,36);blob(450,220,40,36);blob(540,70,11,12);
+ for(let i=0;i<12;i++)a.push({x:30+r()*640,y:30+r()*300});
+ a.forEach(p=>{p.x=Math.min(670,Math.max(30,p.x));p.y=Math.min(330,Math.max(30,p.y))});return a}
+function dbscan(P,eps,minPts){const n=P.length,nb=P.map(p=>{const l=[];for(let j=0;j<n;j++)if(Math.hypot(p.x-P[j].x,p.y-P[j].y)<=eps)l.push(j);return l});
+ const core=nb.map(l=>l.length>=minPts),lab=new Array(n).fill(-1);let k=0;
+ for(let i=0;i<n;i++){if(!core[i]||lab[i]!==-1)continue;lab[i]=k;const q=[i];while(q.length){const u=q.pop();if(!core[u])continue;for(const v of nb[u])if(lab[v]===-1){lab[v]=k;q.push(v)}}k++}
+ return{lab,type:lab.map((l,i)=>core[i]?'core':l>=0?'border':'noise'),nb,k}}
+function hdbscan(P,mcs,ms){const n=P.length,D=P.map(p=>P.map(q=>Math.hypot(p.x-q.x,p.y-q.y)));
+ const core=D.map(row=>[...row].sort((a,b)=>a-b)[Math.min(ms,n)-1]),M=(i,j)=>Math.max(core[i],core[j],D[i][j]);
+ const inT=new Array(n).fill(false),best=new Array(n).fill(Infinity),from=new Array(n).fill(0),E=[];best[0]=0;
+ for(let it=0;it<n;it++){let u=-1;for(let i=0;i<n;i++)if(!inT[i]&&(u<0||best[i]<best[u]))u=i;inT[u]=true;if(it>0)E.push([from[u],u,best[u]]);for(let v=0;v<n;v++)if(!inT[v]){const w=M(u,v);if(w<best[v]){best[v]=w;from[v]=u}}}
+ E.sort((a,b)=>a[2]-b[2]);const par=[...Array(2*n-1).keys()],size=new Array(2*n-1).fill(1),L=[],R=[],H=[];
+ const find=x=>{while(par[x]!==x){par[x]=par[par[x]];x=par[x]}return x};
+ E.forEach(([a,b,w],t)=>{const ra=find(a),rb=find(b),id=n+t;L[id]=ra;R[id]=rb;H[id]=w;size[id]=size[ra]+size[rb];par[ra]=id;par[rb]=id});
+ const leaves=(u,o=[])=>{if(u<n)o.push(u);else{leaves(L[u],o);leaves(R[u],o)}return o},lam=d=>1/Math.max(d,1e-9);
+ const C=[{birth:0,parent:-1,kids:[],stab:0}],fall=new Array(n),inC=new Array(n),st=[[2*n-2,0]];
+ while(st.length){const[u,c]=st.pop(),l=lam(H[u]),a=L[u],b=R[u],sa=size[a],sb=size[b];
+  const drop=x=>leaves(x).forEach(p=>{fall[p]=l;inC[p]=c;C[c].stab+=l-C[c].birth});
+  if(sa>=mcs&&sb>=mcs){for(const x of[a,b]){const id=C.length;C.push({birth:l,parent:c,kids:[],stab:0});C[c].kids.push(id);C[c].stab+=(l-C[c].birth)*size[x];st.push([x,id])}}
+  else if(sa<mcs&&sb<mcs){drop(a);drop(b)}
+  else{const[big,small]=sa>=mcs?[a,b]:[b,a];drop(small);st.push([big,c])}}
+ const sel=new Set(),bs=[];
+ for(let c=C.length-1;c>=0;c--){const sub=C[c].kids.reduce((s,k)=>s+bs[k],0);
+  if(c>0&&(C[c].kids.length===0||C[c].stab>=sub)){bs[c]=C[c].stab;C[c].kids.forEach(function rm(k){sel.delete(k);C[k].kids.forEach(rm)});sel.add(c)}else bs[c]=sub}
+ const ids=[...sel].sort((a,b)=>a-b),idx=new Map(ids.map((c,i)=>[c,i])),lab=new Array(n).fill(-1);
+ for(let p=0;p<n;p++){let c=inC[p];while(c>=0&&!sel.has(c))c=C[c].parent;if(c>=0)lab[p]=idx.get(c)}
+ const lmax=ids.map(()=>0);for(let p=0;p<n;p++)if(lab[p]>=0)lmax[lab[p]]=Math.max(lmax[lab[p]],fall[p]);
+ return{lab,prob:lab.map((l,p)=>l<0?0:Math.min(fall[p],lmax[l])/lmax[l]),stab:ids.map(c=>C[c].stab),k:ids.length}}
+
+
+
+(function(){
+ const P=makeData(),OR='#F4A340',NAVY='#00345B',PAL=['#168fc0','#2A9D8F','#8172C5','#E76F51','#00345B','#B5539B'],$=id=>document.getElementById(id); let hRef=40, hLast=null, hLastMs=5;
+ function grid(ctx,c){ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#fbfdff';ctx.fillRect(0,0,c.width,c.height);ctx.strokeStyle='#e8f0f4';ctx.lineWidth=1;for(let x=30;x<c.width;x+=40){ctx.beginPath();ctx.moveTo(x,20);ctx.lineTo(x,c.height-20);ctx.stroke()}for(let y=30;y<c.height;y+=40){ctx.beginPath();ctx.moveTo(20,y);ctx.lineTo(c.width-20,y);ctx.stroke()}}
+ function cross(ctx,p){ctx.strokeStyle=OR;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(p.x-4,p.y-4);ctx.lineTo(p.x+4,p.y+4);ctx.moveTo(p.x+4,p.y-4);ctx.lineTo(p.x-4,p.y+4);ctx.stroke()}
+ // DBSCAN real: ε se dibuja en las mismas unidades (px del lienzo) que se usan para calcular vecinos.
+ let ref=40;
+ function drawDB(){const c=$('dbCanvas');if(!c)return;const ctx=c.getContext('2d'),eps=+$('epsSlider').value,min=+$('minPtsSlider').value;
+  $('epsValue').textContent=eps;$('minPtsValue').textContent=min;grid(ctx,c);
+  const r=dbscan(P,eps,min),q=P[ref],nbs=r.nb[ref];
+  ctx.beginPath();ctx.arc(q.x,q.y,eps,0,7);ctx.fillStyle='#22B2DE18';ctx.fill();ctx.strokeStyle=NAVY;ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+  nbs.forEach(j=>{ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(P[j].x,P[j].y);ctx.strokeStyle='#00345B33';ctx.lineWidth=1;ctx.stroke()});
+  let n={core:0,border:0,noise:0};
+  P.forEach((p,i)=>{n[r.type[i]]++;if(r.type[i]==='noise'){cross(ctx,p);return}const col=PAL[r.lab[i]%PAL.length];ctx.beginPath();
+   if(r.type[i]==='core'){ctx.arc(p.x,p.y,6,0,7);ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke()}
+   else{ctx.arc(p.x,p.y,5,0,7);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.stroke()}});
+  ctx.beginPath();ctx.arc(q.x,q.y,10,0,7);ctx.strokeStyle=NAVY;ctx.lineWidth=3;ctx.stroke();
+  ctx.fillStyle=NAVY;ctx.font='bold 14px Segoe UI, Arial';ctx.fillText('ε = '+eps,Math.min(q.x+eps*.71+4,c.width-60),Math.max(q.y-eps*.71-4,18));
+  const t=r.type[ref];
+  $('dbInsight').textContent=`${r.k} grupo(s) · ${n.core} núcleo, ${n.border} frontera, ${n.noise} ruido. El punto seleccionado tiene ${nbs.length} puntos dentro de ε (contándose a sí mismo) y el mínimo es ${min}: `+(t==='core'?'es núcleo.':t==='border'?'no llega al mínimo, pero está dentro del radio de un núcleo: es frontera.':'no llega al mínimo y no toca ningún núcleo: es ruido.');}
+ ['epsSlider','minPtsSlider'].forEach(id=>$(id)?.addEventListener('input',drawDB));
+ $('dbReset')?.addEventListener('click',()=>{$('epsSlider').value=30;$('minPtsSlider').value=4;ref=40;drawDB()});
+ $('dbCanvas')?.addEventListener('click',e=>{const c=$('dbCanvas'),b=c.getBoundingClientRect(),x=(e.clientX-b.left)*c.width/b.width,y=(e.clientY-b.top)*c.height/b.height;let bi=-1,bd=1e9;P.forEach((p,i)=>{const d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;bi=i}});if(bd<25){ref=bi;drawDB()}});
+ drawDB();
+ // HDBSCAN real (simplificado): alcanzabilidad mutua → MST → jerarquía → árbol condensado → estabilidad (EOM).
+ function drawHDB(){const c=$('hdbCanvas');if(!c)return;const ctx=c.getContext('2d'),mcs=+$('clusterSizeSlider').value,ms=+$('scaleSlider').value;
+  $('clusterSizeValue').textContent=mcs+' puntos';$('scaleValue').textContent=ms;grid(ctx,c);
+  const r=hdbscan(P,mcs,ms); hLast=r; hLastMs=ms;
+  // Vecindad local del punto seleccionado: distancia hasta el vecino número min_samples.
+  const q=P[hRef],ordered=P.map((p,i)=>({i,d:Math.hypot(p.x-q.x,p.y-q.y)})).sort((a,b)=>a.d-b.d),near=ordered.slice(0,Math.min(ms,ordered.length)),localRadius=near[near.length-1]?.d||0;
+  ctx.beginPath();ctx.arc(q.x,q.y,localRadius,0,Math.PI*2);ctx.fillStyle='#22B2DE18';ctx.fill();ctx.strokeStyle=NAVY;ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+  near.forEach(({i})=>{if(i===hRef)return;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(P[i].x,P[i].y);ctx.strokeStyle='#00345B55';ctx.lineWidth=1;ctx.stroke()});
+  P.forEach((p,i)=>{if(r.lab[i]<0){cross(ctx,p);return}const pr=r.prob[i];ctx.beginPath();ctx.arc(p.x,p.y,3.5+3*pr,0,7);ctx.globalAlpha=.3+.7*pr;ctx.fillStyle=PAL[r.lab[i]%PAL.length];ctx.fill();ctx.globalAlpha=1});
+  // Repintar el borde punteado encima de los puntos para que siempre sea visible.
+  ctx.beginPath();ctx.arc(q.x,q.y,localRadius,0,Math.PI*2);ctx.strokeStyle='#00345B';ctx.lineWidth=2.5;ctx.setLineDash([7,5]);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.arc(q.x,q.y,10,0,Math.PI*2);ctx.strokeStyle=NAVY;ctx.lineWidth=3;ctx.stroke();ctx.beginPath();ctx.arc(q.x,q.y,3,0,Math.PI*2);ctx.fillStyle=NAVY;ctx.fill();
+  const selectedLabel=r.lab[hRef]<0?'ruido':`grupo ${r.lab[hRef]+1}`,selectedProb=r.lab[hRef]<0?0:r.prob[hRef];
+  $('hdbPointInfo').textContent=`Punto ${hRef+1}: ${selectedLabel}. Probabilidad de pertenencia: ${(selectedProb*100).toFixed(1)}%. Vecinos resaltados: ${near.length} (incluye el propio punto). Distancia local aproximada hasta el vecino ${near.length}: ${localRadius.toFixed(1)} unidades del gráfico. ${r.lab[hRef]<0?'El punto fue clasificado como ruido con estos parámetros.':'La probabilidad indica la fuerza de pertenencia estimada, no una probabilidad de que ocurra un accidente.'}`;
+  const noise=r.lab.filter(l=>l<0).length,mx=Math.max(...r.stab,1e-9);
+  $('stabBars').innerHTML=r.k?r.stab.map((s,i)=>`<div>Grupo ${i+1} · ${r.lab.filter(l=>l===i).length} puntos<div class="track"><div style="width:${Math.max(4,s/mx*100)}%;height:100%;background:${PAL[i%PAL.length]};border-radius:99px"></div></div></div>`).join(''):'<div>Ningún grupo alcanza el tamaño mínimo: todo es ruido.</div>';
+  $('hdbInsight').textContent=`${r.k} grupo(s) y ${noise} punto(s) de ruido. `+(r.k===0?'El tamaño mínimo es demasiado alto para estos datos.':mcs>=15?'Con un tamaño mínimo alto, el grupo pequeño deja de ser aceptado como grupo propio y se integra a uno mayor o pasa a ruido.':ms>=10?'Con min_samples alto el algoritmo es más conservador: más puntos de las zonas poco densas pasan a ruido.':'HDBSCAN recupera el grupo denso y el disperso a la vez, algo que un único ε de DBSCAN no logra con estos datos.');}
+ ['scaleSlider','clusterSizeSlider'].forEach(id=>$(id)?.addEventListener('input',drawHDB));
+ $('hdbCanvas')?.addEventListener('click',e=>{const c=$('hdbCanvas'),b=c.getBoundingClientRect(),x=(e.clientX-b.left)*c.width/b.width,y=(e.clientY-b.top)*c.height/b.height;let bi=-1,bd=Infinity;P.forEach((p,i)=>{const d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;bi=i}});if(bd<25){hRef=bi;drawHDB()}});drawHDB();
+})();
+
+
+</script>
+</body>
+</html>
